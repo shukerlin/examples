@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab
+    restart: always
+    hostname: gitlab.local
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.domain.com'  # 使用 HTTP，Nginx 会处理 HTTPS
+        nginx['listen_https'] = false  # 禁用 GitLab 内部的 HTTPS
+        nginx['listen_port'] = 80      # GitLab 只监听 HTTP 端口
+        nginx['listen_addresses'] = ['0.0.0.0']  # 监听所有地址
+
+        # 禁用账户注册
+        gitlab_rails['signup_enabled'] = false  # 禁止新用户注册
+    ports:
+      - "8081:80"   # 映射 GitLab 容器的 80 端口到宿主机的 8081 端口
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_data:/var/opt/gitlab
+      - gitlab_logs:/var/log/gitlab
+
+volumes:
+  gitlab_config:
+    name: gitlab_config
+  gitlab_data:
+    name: gitlab_data
+  gitlab_logs:
+    name: gitlab_logs
