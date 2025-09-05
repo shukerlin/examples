@@ -1,0 +1,148 @@
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "reverse": {
+        "portals": [
+            {
+                "tag": "portal",
+                "domain": "reverse.proxy"
+            }
+        ]
+    },
+    "inbounds": [
+        {
+            "listen": "0.0.0.0",
+            "port": 443,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "tcp@example.com"
+                    }
+                ],
+                "decryption": "none",
+                "fallbacks": [
+                    {
+                        "dest": 80
+                    },
+                    {
+                        "name": "gitlab.domain.com",
+                        "dest": 8080
+                    },
+                    {
+                        "path": "/websocket",
+                        "dest": 1234,
+                        "xver": 1
+                    },
+                    {
+                        "path": "/tunnel",
+                        "dest": 65510,
+                        "xver": 1
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "tls",
+                "tlsSettings": {
+                    "alpn": [
+                        "http/1.1"
+                    ],
+                    "certificates": [
+                        {
+                            "certificateFile": "/etc/letsencrypt/live/domain.com/fullchain.pem",
+                            "keyFile": "/etc/letsencrypt/live/domain.com/privkey.pem"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "port": 1234,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "UUID",
+                        "level": 0,
+                        "email": "websocket@example.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/websocket"
+                }
+            }
+        },
+        {
+            "tag": "external",
+            "port": 8080,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "127.0.0.1",
+                "port": 80,
+                "network": "tcp"
+            }
+        },
+        {
+            "tag": "tunnel",
+            "port": 65510,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+              "clients": [
+                {
+                    "id": "UUID",
+                    "level": 0,
+                    "email": "tunnel@example.com"
+                }
+              ],
+              "decryption": "none"
+            },
+            "streamSettings": {
+              "network": "ws",
+              "security": "none",
+              "wsSettings": {
+                "acceptProxyProtocol": true,
+                "path": "/tunnel"
+              }
+            }
+          }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "out"
+        }
+    ],
+    "routing":{  
+        "rules":[  
+          {  
+            "type":"field",
+            "inboundTag":[  
+              "external"
+            ],
+            "outboundTag":"portal"
+          },
+          {  
+            "type":"field",
+            "inboundTag":[  
+              "tunnel"
+            ],
+            "domain":[  
+              "full:reverse.proxy"
+            ],
+            "outboundTag":"portal"
+          }
+        ]
+      }
+}

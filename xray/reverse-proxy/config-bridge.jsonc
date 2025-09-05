@@ -1,0 +1,71 @@
+{
+    "log": {
+        "loglevel": "info"
+    },
+    "reverse": {
+        "bridges": [
+            {
+                "tag": "bridge",
+                "domain": "reverse.proxy"
+            }
+        ]
+    },
+    "outbounds": [
+        {
+            "tag": "tunnel",
+            "protocol": "vless",
+            "settings": {
+                "vnext": [
+                    {
+                        "address": "IP",
+                        "port": 443,
+                        "users": [
+                            {
+                                "id": "UUID",
+                                "encryption": "none",
+                                "level": 0
+                            }
+                        ]
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "tls",
+                "tlsSettings": {
+                    "serverName": "sv2.domain.com" 
+                },
+                "wsSettings": {
+                    "path": "/tunnel"
+                }
+            }
+        },
+        {
+            "protocol": "freedom",
+            "settings": {
+            },
+            "tag": "out"
+        }
+    ],
+    "routing": {
+        "rules": [
+            {
+                "type": "field",
+                "inboundTag": [
+                    "bridge"
+                ],
+                "domain": [
+                    "full:reverse.proxy"
+                ],
+                "outboundTag": "tunnel"
+            },
+            {
+                "type": "field",
+                "inboundTag": [
+                    "bridge"
+                ],
+                "outboundTag": "out"
+            }
+        ]
+    }
+}

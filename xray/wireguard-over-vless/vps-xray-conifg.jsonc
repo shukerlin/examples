@@ -1,0 +1,103 @@
+{
+    "log": {
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "listen": "0.0.0.0",
+            "port": 443,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "uuid",
+                        "level": 0,
+                        "email": "tcp@example.com"
+                    }
+                ],
+                "decryption": "none",
+                "fallbacks": [
+                    {
+                        "dest": 8080
+                    },
+                    {
+                        "path": "/websocket",
+                        "dest": "/dev/shm/xray-inbound-ws.socket",
+                        "xver": 1
+                    },
+                    {
+                        "path": "/wireguard",
+                        "dest": 1090
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "tls",
+                "tlsSettings": {
+                    "alpn": [
+                        "http/1.1"
+                    ],
+                    "certificates": [
+                        {
+                            "certificateFile": "/etc/letsencrypt/live/foo.com/fullchain.pem",
+                            "keyFile": "/etc/letsencrypt/live/foo.com/privkey.pem"
+                        },
+                        {
+                            "certificateFile": "/etc/letsencrypt/live/bar.link/fullchain.pem",
+                            "keyFile": "/etc/letsencrypt/live/bar.link/privkey.pem"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 1090,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "uuid",
+                        "email": "wireguard@example.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                  "path": "/wireguard"
+                }
+            }
+        },
+        {
+            "listen": "/dev/shm/xray-inbound-ws.socket,0666",
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "uuid",
+                        "level": 0,
+                        "email": "websocket@example.com"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/websocket"
+                }
+            }
+        }
+
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom"
+        }
+    ]
+}
