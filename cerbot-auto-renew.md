@@ -64,8 +64,5 @@ sudo certbot certonly \
 crontab -e 在文件底部添加这一行（每天凌晨 3:15 执行检查）：
 
 ```bash
-
-15 3 * * * /usr/bin/certbot renew --quiet
-# 如果想续订成功重启nginx
-# 15 3 * * * /usr/bin/certbot renew --quiet --deploy-hook "systemctl reload nginx"
+# 15 3 * * * /usr/bin/certbot renew --quiet --deploy-hook "mkdir -p /usr/local/etc/xray/cert && cp -rL /etc/letsencrypt/live/* /usr/local/etc/xray/cert/ && chown -R nobody:nogroup /usr/local/etc/xray/cert && systemctl restart xray"
 ```
